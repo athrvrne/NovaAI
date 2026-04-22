@@ -1,11 +1,9 @@
-# NovaAI Newsletter
+# NovaAI
 
-An agent-powered AI newsletter service. A Python/FastAPI backend runs a 5-stage
-agent pipeline that crawls, filters, summarizes, edits, and delivers daily AI news
-to subscribers. A single-file HTML frontend displays the live feed and admin dashboard.
+An agent-powered AI intelligence platform. A Python/FastAPI backend runs a 5-stage pipeline that crawls 32+ sources every 30 minutes, filters, summarizes with Claude, assembles editions, and delivers daily AI news to subscribers. A single-file HTML frontend displays the live feed and admin dashboard.
 
 ```
-novaai-newsletter/
+novaai/
 ├── index.html                  ← Frontend (deploy to GitHub Pages / Vercel / Netlify)
 ├── README.md
 └── backend/
@@ -14,7 +12,7 @@ novaai-newsletter/
     ├── requirements.txt        ← Python dependencies
     ├── .env.example            ← Copy to .env and fill in keys
     ├── agents/
-    │   ├── crawler.py          ← Fetches RSS feeds and news sources
+    │   ├── crawler.py          ← Fetches 32+ RSS feeds and news sources every 30 min
     │   ├── filter.py           ← Scores and selects best articles
     │   ├── summarizer.py       ← Claude API — generates summaries + bodies
     │   ├── editor.py           ← Composes newsletter editions
@@ -32,13 +30,33 @@ novaai-newsletter/
 
 ---
 
+## Tech stack
+
+| Layer | Technology |
+|-------|-----------|
+| **API framework** | FastAPI (Python) |
+| **Database ORM** | SQLAlchemy 2.0 (async) |
+| **Database** | SQLite (dev) · PostgreSQL via asyncpg (prod) |
+| **AI** | Anthropic Claude API — summaries, article bodies, edition intros |
+| **Email delivery** | SendGrid |
+| **Scheduling** | APScheduler — 30-min crawl interval, weekday 08:00 UTC send |
+| **HTTP / async** | aiohttp — concurrent RSS fetching · asyncio throughout |
+| **Feed parsing** | feedparser · BeautifulSoup4 for HTML cleaning |
+| **Auth** | PyJWT — admin login issues short-lived tokens |
+| **Config** | Pydantic Settings — typed `.env` loading |
+| **Frontend** | Vanilla HTML / CSS / JS (single file, no build step) |
+| **Typography** | Playfair Display · DM Sans via Google Fonts |
+| **Deployment** | Railway or Render (backend) · GitHub Pages / Vercel / Netlify (frontend) |
+
+---
+
 ## Quickstart
 
 ### 1. Clone and set up Python backend
 
 ```bash
-git clone https://github.com/your-username/novaai-newsletter.git
-cd novaai-newsletter/backend
+git clone https://github.com/your-username/novaai.git
+cd novaai/backend
 
 python -m venv venv
 source venv/bin/activate          # Windows: venv\Scripts\activate
@@ -67,12 +85,9 @@ Edit `.env` and fill in:
 uvicorn main:app --reload --port 8000
 ```
 
-The API will be available at `http://localhost:8000`.  
-Interactive docs at `http://localhost:8000/docs`.
+API available at `http://localhost:8000`. Interactive docs at `http://localhost:8000/docs`.
 
 ### 4. Open the frontend
-
-Open `index.html` in a browser, or serve it locally:
 
 ```bash
 # From the project root
@@ -82,28 +97,12 @@ python -m http.server 5500
 
 ---
 
-## Changing the API endpoint
-
-In `index.html`, find this line near the top of the `<script>` block:
-
-```js
-const API_BASE = 'http://localhost:8000';
-```
-
-Change it to your deployed backend URL, e.g.:
-
-```js
-const API_BASE = 'https://your-api.railway.app';
-```
-
----
-
 ## Pipeline agents
 
-The pipeline runs automatically every 6 hours. You can also trigger it manually:
+The crawler runs every **30 minutes**. The full pipeline (summarize + compose + send) runs on the same interval but only dispatches emails on weekdays at 08:00 UTC. You can also trigger it manually:
 
 ```bash
-# Via API (requires admin token)
+# Via API
 curl -X POST http://localhost:8000/api/pipeline/trigger
 
 # Or directly in Python
@@ -119,11 +118,45 @@ Crawler → Filter → Summarizer → Editor → Sender
 
 | Agent | What it does |
 |-------|-------------|
-| **Crawler** | Fetches RSS feeds from 16+ AI news sources |
-| **Filter** | Scores articles by relevance, recency, and tag — selects top 12 |
+| **Crawler** | Fetches up to 100 articles from 32+ sources every 30 minutes; deduplicates by URL |
+| **Filter** | Scores articles by relevance, recency, and tag — selects the best candidates |
 | **Summarizer** | Calls Claude API to generate 2-sentence summaries + full article bodies |
 | **Editor** | Creates the Edition record, picks featured article, writes intro via Claude |
-| **Sender** | Renders HTML email template and sends via SendGrid |
+| **Sender** | Renders HTML email and dispatches via SendGrid to active subscribers |
+
+### News sources
+
+The crawler pulls from 32+ sources grouped by category:
+
+| Category | Sources |
+|----------|---------|
+| **Major tech news** | The Verge AI, TechCrunch AI, Wired AI, VentureBeat AI, Ars Technica, ZDNet, Forbes AI, IEEE Spectrum, The Register AI, InfoWorld AI |
+| **AI lab blogs** | OpenAI, Anthropic, Google DeepMind, Google AI, Meta AI, Microsoft AI, HuggingFace, NVIDIA, AWS ML |
+| **Research** | arXiv cs.AI, arXiv cs.LG, arXiv cs.CL, MIT Tech Review, Towards Data Science |
+| **Newsletters** | Import AI, Ben's Bites, AI News |
+| **Google News** | Search feeds for: AI, LLMs, Generative AI, AI startups, AI policy |
+
+To add more sources, append to the `SOURCES` list in `backend/agents/crawler.py`:
+
+```python
+{"name": "My Source", "url": "https://example.com/feed.xml", "tag_hint": ArticleTag.research},
+```
+
+---
+
+## Changing the API endpoint
+
+In `index.html`, update this line at the top of the `<script>` block:
+
+```js
+const API_BASE = 'http://localhost:8000';
+```
+
+Change to your deployed backend URL:
+
+```js
+const API_BASE = 'https://your-api.railway.app';
+```
 
 ---
 
@@ -132,7 +165,6 @@ Crawler → Filter → Summarizer → Editor → Sender
 ### Backend — Railway (recommended)
 
 ```bash
-# Install Railway CLI
 npm install -g @railway/cli
 railway login
 railway init
@@ -180,19 +212,20 @@ alembic upgrade head
 
 ---
 
-## Adding more RSS sources
+## Pipeline settings
 
-In `backend/agents/crawler.py`, add to the `SOURCES` list:
+Key values you can tune in `.env`:
 
-```python
-{"name": "My Source", "url": "https://example.com/feed.xml", "tag_hint": ArticleTag.research},
-```
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PIPELINE_INTERVAL_MINUTES` | `30` | How often the crawler runs |
+| `MAX_ARTICLES_PER_RUN` | `100` | Max articles fetched per pipeline run |
+| `MIN_RELEVANCE_SCORE` | `0.6` | Minimum score for an article to be included |
 
 ---
 
-## Admin credentials
+## Admin access
 
-Default: `admin` / `novaai2026` — **change these in `.env` before deploying**.
+Default credentials: `admin` / `novaai2026` — **change these in `.env` before deploying**.
 
-The admin login issues a JWT token stored in `localStorage`. Admin tabs
-(Agents, Subscribers) are hidden from public visitors until login.
+The admin panel is not linked anywhere in the public UI. Navigate to `/?admin=unlock` to open the login modal. On successful login, a JWT is stored in `localStorage` and the Agents and Subscribers tabs become visible.

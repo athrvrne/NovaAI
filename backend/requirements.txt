@@ -1,0 +1,35 @@
+# NovaAI — Python dependencies
+# Install with: pip install -r requirements.txt
+
+# Web framework
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+
+# Database
+sqlalchemy==2.0.35
+aiosqlite==0.20.0          # SQLite async driver (dev)
+asyncpg==0.29.0            # PostgreSQL async driver (prod)
+alembic==1.13.3            # DB migrations
+
+# Settings
+pydantic==2.9.2
+pydantic-settings==2.5.2
+pydantic[email]==2.9.2
+
+# HTTP client (for crawler)
+aiohttp==3.10.8
+feedparser==6.0.11
+beautifulsoup4==4.12.3
+lxml==5.3.0
+
+# AI
+anthropic==0.34.2
+
+# Email
+sendgrid==6.11.0
+
+# Auth
+pyjwt==2.9.0
+
+# Scheduler
+apscheduler==3.10.4

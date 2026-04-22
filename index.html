@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovaAI — AI Intelligence Daily</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: #E8F1F7; color: #131C25; min-height: 100vh; }
+
+/* ── NAV ─────────────────────────────────────────────────────────────────── */
+.nav { display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 2rem; border-bottom: 1px solid rgba(32,117,167,0.12); background: rgba(232,241,247,0.97); position: sticky; top: 0; z-index: 200; backdrop-filter: blur(8px); }
+.logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; color: #131C25; cursor: pointer; }
+.logo span { color: #2075A7; }
+.nav-tabs { display: flex; gap: 4px; background: rgba(32,117,167,0.07); border-radius: 10px; padding: 4px; }
+.nav-tab { padding: 0.4rem 1rem; border-radius: 8px; font-size: 0.82rem; font-weight: 500; cursor: pointer; color: rgba(19,28,37,0.45); border: none; background: transparent; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+.nav-tab.active { background: rgba(32,117,167,0.12); color: #2075A7; border: 1px solid rgba(32,117,167,0.22); }
+.nav-tab:hover:not(.active) { color: rgba(19,28,37,0.75); }
+
+/* Admin tabs */
+.admin-tab { padding: 0.4rem 1rem; border-radius: 8px; font-size: 0.82rem; font-weight: 500; cursor: pointer; color: rgba(19,28,37,0.38); border: none; background: transparent; transition: all 0.2s; font-family: 'DM Sans',sans-serif; display: none; }
+.admin-tab.visible { display: inline-block; }
+.admin-tab.active { background: rgba(133,106,92,0.12); color: #856A5c; border: 1px solid rgba(133,106,92,0.25); }
+.admin-tab:hover:not(.active) { color: rgba(19,28,37,0.72); }
+
+.nav-right { display: flex; align-items: center; gap: 1rem; }
+.badge-live { display: flex; align-items: center; gap: 6px; font-size: 0.7rem; color: #3a7a58; font-weight: 500; }
+.dot-live { width: 7px; height: 7px; background: #3a7a58; border-radius: 50%; animation: blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+/* Admin badge + sign-out */
+.admin-badge { font-size: 0.62rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #856A5c; background: rgba(133,106,92,0.1); border: 1px solid rgba(133,106,92,0.22); border-radius: 6px; padding: 2px 7px; display: none; }
+.admin-badge.visible { display: inline-block; }
+.signout-btn { display: none; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 500; color: rgba(19,28,37,0.45); cursor: pointer; border: 1px solid rgba(32,117,167,0.18); border-radius: 8px; padding: 0.35rem 0.75rem; background: transparent; font-family: 'DM Sans',sans-serif; transition: all 0.2s; }
+.signout-btn.visible { display: flex; }
+.signout-btn:hover { color: rgba(19,28,37,0.75); border-color: rgba(32,117,167,0.35); }
+
+/* ── PAGES ───────────────────────────────────────────────────────────────── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── SKELETONS ───────────────────────────────────────────────────────────── */
+.skeleton { background: linear-gradient(90deg, rgba(32,117,167,0.06) 25%, rgba(32,117,167,0.12) 50%, rgba(32,117,167,0.06) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
+@keyframes shimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+.skeleton-card { background: #ffffff; padding: 1.5rem 2rem; border-bottom: 1px solid rgba(32,117,167,0.08); }
+.sk-tag { height: 10px; width: 80px; margin-bottom: 12px; }
+.sk-title { height: 16px; width: 85%; margin-bottom: 8px; }
+.sk-title-2 { height: 16px; width: 65%; margin-bottom: 14px; }
+.sk-body { height: 12px; width: 100%; margin-bottom: 6px; }
+.sk-body-2 { height: 12px; width: 80%; margin-bottom: 14px; }
+.sk-meta { height: 10px; width: 120px; }
+
+/* ── ARTICLE ─────────────────────────────────────────────────────────────── */
+.article-back { display: flex; align-items: center; gap: 8px; padding: 1.5rem 2rem 0; cursor: pointer; color: rgba(19,28,37,0.4); font-size: 0.82rem; font-weight: 500; width: fit-content; transition: color 0.15s; border: none; background: transparent; font-family: 'DM Sans',sans-serif; }
+.article-back:hover { color: #2075A7; }
+.article-wrap { max-width: 720px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+.article-tag-line { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem; }
+.article-headline { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem,4vw,2.4rem); font-weight: 700; color: #131C25; line-height: 1.18; letter-spacing: -0.02em; margin-bottom: 1.2rem; }
+.article-meta-row { display: flex; align-items: center; gap: 12px; font-size: 0.75rem; color: rgba(19,28,37,0.38); padding-bottom: 1.5rem; border-bottom: 1px solid rgba(32,117,167,0.1); margin-bottom: 2rem; flex-wrap: wrap; }
+.article-meta-row .src { color: rgba(19,28,37,0.65); font-weight: 500; }
+.article-visual { background: rgba(232,223,196,0.3); border: 1px solid rgba(232,223,196,0.8); border-radius: 14px; height: 200px; display: flex; align-items: center; justify-content: center; margin-bottom: 2rem; }
+.article-body { font-size: 0.97rem; line-height: 1.85; color: rgba(19,28,37,0.72); }
+.article-body p { margin-bottom: 1.3rem; }
+.article-body h3 { font-family: 'Playfair Display',serif; font-size: 1.15rem; color: #131C25; margin: 2rem 0 0.75rem; font-weight: 700; }
+.article-body blockquote { border-left: 2px solid #2075A7; padding-left: 1.2rem; margin: 1.5rem 0; color: rgba(19,28,37,0.5); font-style: italic; font-size: 0.94rem; line-height: 1.7; }
+.src-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 1.5rem; font-size: 0.82rem; color: #2075A7; font-weight: 500; text-decoration: none; border: 1px solid rgba(32,117,167,0.28); border-radius: 8px; padding: 0.5rem 1rem; transition: all 0.15s; }
+.src-link:hover { background: rgba(32,117,167,0.06); }
+
+/* ── HOME ────────────────────────────────────────────────────────────────── */
+.hero { text-align: center; padding: 4rem 2rem 2rem; max-width: 720px; margin: 0 auto; }
+.hero-eyebrow { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: #2075A7; margin-bottom: 1rem; }
+.hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem,5vw,3.2rem); font-weight: 700; line-height: 1.1; color: #131C25; letter-spacing: -0.03em; margin-bottom: 1rem; }
+.hero h1 em { font-style: italic; color: #2075A7; }
+.hero p { color: rgba(19,28,37,0.52); font-size: 0.94rem; line-height: 1.7; margin-bottom: 2rem; }
+.subscribe-row { display: flex; gap: 8px; max-width: 420px; margin: 0 auto 0.75rem; }
+.subscribe-row input { flex: 1; background: #ffffff; border: 1px solid rgba(32,117,167,0.22); border-radius: 10px; padding: 0.7rem 1rem; color: #131C25; font-size: 0.88rem; font-family: 'DM Sans',sans-serif; outline: none; }
+.subscribe-row input::placeholder { color: rgba(19,28,37,0.32); }
+.subscribe-row input:focus { border-color: #2075A7; box-shadow: 0 0 0 3px rgba(32,117,167,0.08); }
+.btn-primary { background: #2075A7; color: #ffffff; border: none; border-radius: 10px; padding: 0.7rem 1.3rem; font-size: 0.88rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background 0.2s; font-family: 'DM Sans',sans-serif; }
+.btn-primary:hover { background: #131C25; }
+.sub-count { font-size: 0.75rem; color: rgba(19,28,37,0.32); }
+.sub-count span { color: rgba(19,28,37,0.55); }
+.stats-row { display: flex; border-top: 1px solid rgba(32,117,167,0.1); border-bottom: 1px solid rgba(32,117,167,0.1); margin: 2rem 0; background: rgba(232,223,196,0.2); }
+.stat-item { flex: 1; padding: 1.2rem; text-align: center; border-right: 1px solid rgba(32,117,167,0.08); }
+.stat-item:last-child { border-right: none; }
+.stat-num { font-family: 'Playfair Display',serif; font-size: 1.6rem; color: #131C25; font-weight: 700; }
+.stat-label { font-size: 0.68rem; color: rgba(19,28,37,0.4); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+.feed-header { display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem; }
+.section-title { font-family: 'Playfair Display',serif; font-size: 1.1rem; color: #131C25; font-weight: 700; }
+.filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { padding: 4px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 500; cursor: pointer; border: 1px solid rgba(32,117,167,0.18); color: rgba(19,28,37,0.48); background: transparent; transition: all 0.15s; font-family: 'DM Sans',sans-serif; }
+.chip.active, .chip:hover { border-color: rgba(32,117,167,0.45); color: #2075A7; background: rgba(32,117,167,0.07); }
+.news-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(32,117,167,0.1); }
+.news-card { background: #ffffff; padding: 1.5rem 2rem; cursor: pointer; transition: background 0.15s; }
+.news-card:hover { background: #E8F1F7; }
+.news-card:hover .card-headline { color: #2075A7; }
+.news-card.featured { grid-column: 1/-1; display: grid; grid-template-columns: 1fr 220px; gap: 2rem; align-items: center; }
+.card-tag { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.6rem; }
+.tag-model { color: #2075A7; } .tag-research { color: #3a7a58; } .tag-industry { color: #856A5c; } .tag-policy { color: #7a4a78; } .tag-tools { color: #2075A7; } .tag-other { color: #6b7280; }
+.card-headline { font-family: 'Playfair Display',serif; font-size: 1rem; font-weight: 700; color: #131C25; line-height: 1.3; margin-bottom: 0.5rem; transition: color 0.15s; }
+.news-card.featured .card-headline { font-size: 1.35rem; }
+.card-summary { font-size: 0.8rem; color: rgba(19,28,37,0.5); line-height: 1.6; margin-bottom: 0.75rem; }
+.card-meta { display: flex; align-items: center; gap: 8px; font-size: 0.68rem; color: rgba(19,28,37,0.3); }
+.card-meta .source { color: rgba(19,28,37,0.55); font-weight: 500; }
+.read-hint { display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; color: rgba(32,117,167,0.7); font-weight: 500; margin-top: 0.5rem; }
+.card-visual { background: rgba(232,223,196,0.35); border-radius: 12px; height: 150px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(232,223,196,0.9); }
+.empty-state { grid-column: 1/-1; text-align: center; padding: 4rem 2rem; color: rgba(19,28,37,0.35); font-size: 0.9rem; }
+
+/* ── EDITIONS ─────────────────────────────────────────────────────────────── */
+.nl-page { padding: 2rem; }
+.nl-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+.nl-editions { display: flex; flex-direction: column; gap: 10px; }
+.edition-card { display: flex; align-items: center; gap: 1rem; background: #ffffff; border: 1px solid rgba(32,117,167,0.12); border-radius: 12px; padding: 1rem 1.25rem; cursor: pointer; transition: all 0.15s; }
+.edition-card:hover { background: #E8F1F7; border-color: rgba(32,117,167,0.28); }
+.edition-num { font-family: 'Playfair Display',serif; font-size: 1rem; font-weight: 700; color: rgba(19,28,37,0.22); min-width: 44px; }
+.edition-info { flex: 1; }
+.edition-title { font-size: 0.88rem; font-weight: 500; color: #131C25; margin-bottom: 2px; }
+.edition-meta { font-size: 0.72rem; color: rgba(19,28,37,0.35); }
+.edition-rate { font-size: 0.88rem; font-weight: 500; color: #3a7a58; text-align: right; }
+
+/* ── SCHEDULE CARD ────────────────────────────────────────────────────────── */
+.schedule-card { background: #ffffff; border: 1px solid rgba(32,117,167,0.12); border-radius: 12px; padding: 1.1rem; margin-top: 2rem; }
+.schedule-row { display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 0; border-bottom: 1px solid rgba(32,117,167,0.07); }
+.schedule-row:last-child { border-bottom: none; }
+.schedule-label { font-size: 0.82rem; color: rgba(19,28,37,0.5); }
+.schedule-value { font-size: 0.82rem; color: #131C25; font-weight: 500; }
+.schedule-value.green { color: #3a7a58; }
+.toggle { width: 36px; height: 20px; background: rgba(32,117,167,0.15); border-radius: 20px; cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0; }
+.toggle.on { background: #2075A7; }
+.toggle::after { content:''; position:absolute; width:14px; height:14px; background:#fff; border-radius:50%; top:3px; left:3px; transition:left 0.2s; }
+.toggle.on::after { left:19px; }
+
+/* ── ADMIN: AGENTS ────────────────────────────────────────────────────────── */
+.pipeline { padding: 2rem; }
+.pipeline-title { font-family: 'Playfair Display',serif; font-size: 1.2rem; color: #131C25; margin-bottom: 0.35rem; }
+.pipeline-sub { font-size: 0.8rem; color: rgba(19,28,37,0.42); margin-bottom: 2rem; }
+.agent-row { display: flex; align-items: stretch; margin-bottom: 1.5rem; overflow-x: auto; }
+.agent-card { flex: 1; min-width: 138px; background: #ffffff; border: 1px solid rgba(32,117,167,0.12); border-radius: 12px; padding: 1.1rem; transition: all 0.2s; }
+.agent-card:hover { background: #E8F1F7; border-color: rgba(32,117,167,0.28); }
+.agent-card.running { border-color: rgba(58,122,88,0.3); background: rgba(58,122,88,0.05); }
+.agent-card.idle { opacity: 0.5; }
+.agent-arrow { display: flex; align-items: center; padding: 0 0.6rem; color: rgba(19,28,37,0.2); font-size: 0.9rem; flex-shrink: 0; }
+.agent-icon { font-size: 1.1rem; margin-bottom: 0.4rem; }
+.agent-name { font-weight: 500; font-size: 0.85rem; color: #131C25; margin-bottom: 0.2rem; }
+.agent-desc { font-size: 0.72rem; color: rgba(19,28,37,0.42); line-height: 1.5; }
+.agent-status { display: inline-flex; align-items: center; gap: 4px; font-size: 0.65rem; margin-top: 0.55rem; font-weight: 500; }
+.status-running { color: #3a7a58; } .status-done { color: #2075A7; } .status-waiting { color: rgba(19,28,37,0.3); }
+.status-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.status-dot.anim { animation: blink 1.5s infinite; }
+.log-box { background: #131C25; border: 1px solid rgba(32,117,167,0.2); border-radius: 10px; padding: 0.9rem; margin-top: 1.5rem; font-family: 'Courier New',monospace; font-size: 0.7rem; line-height: 1.9; color: rgba(232,241,247,0.45); max-height: 200px; overflow-y: auto; }
+.log-ok { color: #6abf8a; } .log-info { color: #5baed4; } .log-warn { color: #e8c46a; } .log-error { color: #e87272; }
+.btn-ghost { background: transparent; border: 1px solid rgba(32,117,167,0.2); border-radius: 10px; padding: 0.7rem 1.3rem; font-size: 0.88rem; color: rgba(19,28,37,0.5); cursor: pointer; font-family: 'DM Sans',sans-serif; }
+.btn-ghost:hover { color: #131C25; border-color: rgba(32,117,167,0.42); }
+.admin-section-divider { border-top: 1px solid rgba(32,117,167,0.1); margin-top: 2.5rem; padding-top: 2rem; }
+
+/* ── ADMIN: SUBSCRIBERS ───────────────────────────────────────────────────── */
+.sub-page { padding: 2rem; }
+.sub-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 2rem; }
+.sub-stat { background: #ffffff; border: 1px solid rgba(32,117,167,0.12); border-radius: 10px; padding: 1rem; text-align: center; }
+.sub-stat-num { font-family: 'Playfair Display',serif; font-size: 1.5rem; color: #131C25; font-weight: 700; }
+.sub-stat-label { font-size: 0.68rem; color: rgba(19,28,37,0.38); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 2px; }
+.subscriber-list { border: 1px solid rgba(32,117,167,0.12); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
+.sub-list-header, .sub-row { display: grid; grid-template-columns: 1fr 120px 90px 80px; gap: 1rem; padding: 0.6rem 1rem; align-items: center; }
+.sub-list-header { font-size: 0.66rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: rgba(19,28,37,0.38); background: rgba(32,117,167,0.05); border-bottom: 1px solid rgba(32,117,167,0.1); }
+.sub-row { font-size: 0.82rem; border-bottom: 1px solid rgba(32,117,167,0.06); transition: background 0.1s; background: #ffffff; }
+.sub-row:last-child { border-bottom: none; }
+.sub-row:hover { background: #E8F1F7; }
+.sub-email { color: rgba(19,28,37,0.72); }
+.sub-date { color: rgba(19,28,37,0.38); font-size: 0.75rem; }
+.sub-freq { color: rgba(19,28,37,0.42); font-size: 0.75rem; }
+.sub-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.66rem; font-weight: 500; }
+.badge-active { background: rgba(58,122,88,0.1); color: #3a7a58; }
+.badge-new { background: rgba(32,117,167,0.1); color: #2075A7; }
+.badge-paused { background: rgba(19,28,37,0.06); color: rgba(19,28,37,0.38); }
+.add-sub-form { background: #ffffff; border: 1px solid rgba(32,117,167,0.12); border-radius: 12px; padding: 1.1rem; }
+.form-row { display: flex; gap: 8px; align-items: center; }
+.form-row input, .form-row select { background: #E8F1F7; border: 1px solid rgba(32,117,167,0.2); border-radius: 8px; padding: 0.55rem 0.75rem; color: #131C25; font-size: 0.82rem; font-family: 'DM Sans',sans-serif; outline: none; }
+.form-row input:focus, .form-row select:focus { border-color: #2075A7; }
+.form-row input { flex: 1; }
+.form-row select option { background: #ffffff; }
+
+/* ── LOGIN MODAL ──────────────────────────────────────────────────────────── */
+.overlay { position: fixed; inset: 0; background: rgba(19,28,37,0.45); z-index: 500; display: none; align-items: center; justify-content: center; }
+.overlay.open { display: flex; }
+.modal { background: #ffffff; border: 1px solid rgba(32,117,167,0.15); border-radius: 16px; padding: 2rem; width: 360px; max-width: 92vw; box-shadow: 0 20px 60px rgba(19,28,37,0.12); }
+.modal-title { font-family: 'Playfair Display',serif; font-size: 1.3rem; color: #131C25; font-weight: 700; margin-bottom: 0.4rem; }
+.modal-sub { font-size: 0.8rem; color: rgba(19,28,37,0.42); margin-bottom: 1.75rem; line-height: 1.6; }
+.field { margin-bottom: 1rem; }
+.field label { display: block; font-size: 0.75rem; font-weight: 500; color: rgba(19,28,37,0.48); margin-bottom: 0.4rem; letter-spacing: 0.04em; }
+.field input { width: 100%; background: #E8F1F7; border: 1px solid rgba(32,117,167,0.2); border-radius: 9px; padding: 0.65rem 0.9rem; color: #131C25; font-size: 0.88rem; font-family: 'DM Sans',sans-serif; outline: none; }
+.field input:focus { border-color: #2075A7; box-shadow: 0 0 0 3px rgba(32,117,167,0.08); }
+.modal-err { font-size: 0.75rem; color: #b03a2e; margin-top: 0.6rem; min-height: 1rem; }
+.modal-actions { display: flex; gap: 8px; margin-top: 1.25rem; }
+.modal-actions .btn-primary { flex: 1; }
+.btn-cancel { flex: 1; background: transparent; border: 1px solid rgba(32,117,167,0.18); border-radius: 10px; padding: 0.7rem; font-size: 0.88rem; color: rgba(19,28,37,0.45); cursor: pointer; font-family: 'DM Sans',sans-serif; }
+.btn-cancel:hover { border-color: rgba(32,117,167,0.38); color: rgba(19,28,37,0.72); }
+
+/* ── TOAST ────────────────────────────────────────────────────────────────── */
+.toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: #2075A7; color: #ffffff; padding: 0.7rem 1.2rem; border-radius: 10px; font-size: 0.82rem; font-weight: 500; opacity: 0; transform: translateY(10px); transition: all 0.3s; z-index: 999; pointer-events: none; max-width: 300px; }
+.toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ── NAV ─────────────────────────────────────────────────────────────────── -->
+<nav class="nav">
+  <div class="logo" onclick="goHome()">Nova<span>AI</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchPage('home',this)">Feed</button>
+    <button class="nav-tab" onclick="switchPage('newsletter',this)">Editions</button>
+    <button class="admin-tab" id="tab-agents"      onclick="switchPage('agents',this)">Agents</button>
+    <button class="admin-tab" id="tab-subscribers" onclick="switchPage('subscribers',this)">Subscribers</button>
+  </div>
+  <div class="nav-right">
+    <span class="admin-badge" id="admin-badge">Admin</span>
+    <div class="badge-live"><div class="dot-live"></div> Live</div>
+    <button class="signout-btn" id="signout-btn" onclick="logoutAdmin()">🔓 Sign out</button>
+  </div>
+</nav>
+
+<!-- ── LOGIN MODAL ────────────────────────────────────────────────────────── -->
+<div class="overlay" id="overlay" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="modal-title">Admin access</div>
+    <p class="modal-sub">Enter your credentials to access the admin dashboard.</p>
+    <div class="field"><label>Username</label><input type="text" id="lu" placeholder="admin" autocomplete="off"/></div>
+    <div class="field"><label>Password</label><input type="password" id="lp" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <div class="modal-err" id="lerr"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="doLogin()">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── HOME PAGE ───────────────────────────────────────────────────────────── -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <p class="hero-eyebrow">AI Intelligence Daily</p>
+    <h1>The <em>future</em> of artificial intelligence, in your inbox.</h1>
+    <p>Agent-curated AI news from 32+ sources — models, research, industry, and policy — distilled into what actually matters, every morning.</p>
+    <div class="subscribe-row">
+      <input type="email" id="hero-email" placeholder="your@email.com"/>
+      <button class="btn-primary" onclick="heroSubscribe()">Subscribe free</button>
+    </div>
+    <p class="sub-count">Join <span id="sub-display">—</span> readers</p>
+  </div>
+  <div class="stats-row">
+    <div class="stat-item"><div class="stat-num">32+</div><div class="stat-label">Sources</div></div>
+    <div class="stat-item"><div class="stat-num" id="stat-today">—</div><div class="stat-label">Articles today</div></div>
+    <div class="stat-item"><div class="stat-num">Daily</div><div class="stat-label">Cadence</div></div>
+    <div class="stat-item"><div class="stat-num" id="stat-openrate">—</div><div class="stat-label">Open rate</div></div>
+  </div>
+  <div class="feed-header">
+    <div class="section-title">Today's Feed</div>
+    <div class="filter-chips">
+      <button class="chip active" onclick="filterNews('all',this)">All</button>
+      <button class="chip" onclick="filterNews('model',this)">Models</button>
+      <button class="chip" onclick="filterNews('research',this)">Research</button>
+      <button class="chip" onclick="filterNews('industry',this)">Industry</button>
+      <button class="chip" onclick="filterNews('policy',this)">Policy</button>
+    </div>
+  </div>
+  <div class="news-grid" id="news-grid">
+    <div class="news-card featured skeleton-card">
+      <div><div class="skeleton sk-tag"></div><div class="skeleton sk-title"></div><div class="skeleton sk-title-2"></div><div class="skeleton sk-body"></div><div class="skeleton sk-body-2"></div><div class="skeleton sk-meta"></div></div>
+    </div>
+    <div class="skeleton-card"><div class="skeleton sk-tag"></div><div class="skeleton sk-title"></div><div class="skeleton sk-body"></div><div class="skeleton sk-meta"></div></div>
+    <div class="skeleton-card"><div class="skeleton sk-tag"></div><div class="skeleton sk-title"></div><div class="skeleton sk-body"></div><div class="skeleton sk-meta"></div></div>
+  </div>
+</div>
+
+<!-- ── ARTICLE VIEW ────────────────────────────────────────────────────────── -->
+<div id="page-article" class="page">
+  <button class="article-back" onclick="closeArticle()">← Back to feed</button>
+  <div class="article-wrap">
+    <div class="article-tag-line" id="art-tag"></div>
+    <div class="article-headline" id="art-headline"></div>
+    <div class="article-meta-row" id="art-meta"></div>
+    <div class="article-visual">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+        <circle cx="28" cy="28" r="16" stroke="#2075A7" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.4"/>
+        <circle cx="28" cy="28" r="8" fill="rgba(32,117,167,0.1)" stroke="#2075A7" stroke-width="1.5"/>
+        <circle cx="28" cy="28" r="3" fill="#2075A7"/>
+      </svg>
+    </div>
+    <div class="article-body" id="art-body"></div>
+    <a class="src-link" id="art-src-link" href="#" target="_blank" rel="noopener">Read original source ↗</a>
+  </div>
+</div>
+
+<!-- ── EDITIONS PAGE ──────────────────────────────────────────────────────── -->
+<div id="page-newsletter" class="page">
+  <div class="nl-page">
+    <div class="nl-header">
+      <div class="section-title">Past Editions</div>
+      <div class="badge-live"><div class="dot-live"></div> Daily at 08:00 UTC</div>
+    </div>
+    <div class="nl-editions" id="editions-list">
+      <div class="skeleton-card" style="border-radius:12px;"><div class="skeleton sk-title" style="margin-bottom:8px;"></div><div class="skeleton sk-meta"></div></div>
+      <div class="skeleton-card" style="border-radius:12px;"><div class="skeleton sk-title" style="margin-bottom:8px;"></div><div class="skeleton sk-meta"></div></div>
+      <div class="skeleton-card" style="border-radius:12px;"><div class="skeleton sk-title" style="margin-bottom:8px;"></div><div class="skeleton sk-meta"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADMIN: AGENTS PAGE ──────────────────────────────────────────────────── -->
+<div id="page-agents" class="page">
+  <div class="pipeline">
+    <div class="pipeline-title">Agent Pipeline</div>
+    <p class="pipeline-sub" id="pipeline-sub-text">Loading pipeline status...</p>
+
+    <div class="agent-row">
+      <div class="agent-card">
+        <div class="agent-icon">🔍</div>
+        <div class="agent-name">Crawler Agent</div>
+        <div class="agent-desc">Monitors 32+ sources: arXiv, AI lab blogs, Google News, Reuters, and RSS feeds. Runs every 30 min.</div>
+        <div class="agent-status status-done"><div class="status-dot"></div> Ready</div>
+      </div>
+      <div class="agent-arrow">→</div>
+      <div class="agent-card">
+        <div class="agent-icon">🧹</div>
+        <div class="agent-name">Filter Agent</div>
+        <div class="agent-desc">Deduplicates, scores relevance, clusters related stories with embedding similarity.</div>
+        <div class="agent-status status-done"><div class="status-dot"></div> Ready</div>
+      </div>
+      <div class="agent-arrow">→</div>
+      <div class="agent-card">
+        <div class="agent-icon">✍️</div>
+        <div class="agent-name">Summarizer Agent</div>
+        <div class="agent-desc">Generates concise summaries using Claude API. Preserves nuance, strips fluff.</div>
+        <div class="agent-status status-waiting"><div class="status-dot"></div> Idle</div>
+      </div>
+      <div class="agent-arrow">→</div>
+      <div class="agent-card idle">
+        <div class="agent-icon">📰</div>
+        <div class="agent-name">Editor Agent</div>
+        <div class="agent-desc">Arranges stories by significance, writes intro copy, composes full newsletter layout.</div>
+        <div class="agent-status status-waiting"><div class="status-dot"></div> Idle</div>
+      </div>
+      <div class="agent-arrow">→</div>
+      <div class="agent-card idle">
+        <div class="agent-icon">📬</div>
+        <div class="agent-name">Send Agent</div>
+        <div class="agent-desc">Personalizes subject lines, dispatches via SendGrid, tracks opens and clicks.</div>
+        <div class="agent-status status-waiting"><div class="status-dot"></div> Idle</div>
+      </div>
+    </div>
+
+    <div class="log-box" id="log-box">
+      <div style="color:rgba(232,241,247,0.28);font-size:0.7rem;">Connecting to pipeline...</div>
+    </div>
+    <div style="margin-top:1.5rem;display:flex;gap:8px;">
+      <button class="btn-primary" onclick="triggerPipeline()">▶ Run pipeline</button>
+      <button class="btn-ghost" onclick="refreshLog()">↻ Refresh log</button>
+    </div>
+
+    <div class="admin-section-divider">
+      <div class="section-title" style="font-size:1rem;margin-bottom:0.15rem;">Send Schedule</div>
+      <p style="font-size:0.78rem;color:rgba(19,28,37,0.38);margin-bottom:0;">Configure when the newsletter is sent to subscribers.</p>
+      <div class="schedule-card">
+        <div class="schedule-row">
+          <span class="schedule-label">Frequency</span>
+          <span class="schedule-value green">Daily (Mon–Fri)</span>
+        </div>
+        <div class="schedule-row">
+          <span class="schedule-label">Send time</span>
+          <span class="schedule-value">08:00 UTC</span>
+        </div>
+        <div class="schedule-row">
+          <span class="schedule-label">Agent crawl</span>
+          <span class="schedule-value">Every 30 minutes</span>
+        </div>
+        <div class="schedule-row">
+          <span class="schedule-label">Auto-send</span>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="schedule-row">
+          <span class="schedule-label">Weekend digest</span>
+          <div class="toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="schedule-row">
+          <span class="schedule-label">Pause all sends</span>
+          <div class="toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-section-divider">
+      <div class="section-title" style="font-size:1rem;margin-bottom:0.9rem;">Sources monitored</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        <span class="chip active">arXiv</span><span class="chip active">Google News</span>
+        <span class="chip active">OpenAI Blog</span><span class="chip active">Anthropic</span>
+        <span class="chip active">DeepMind</span><span class="chip active">The Verge AI</span>
+        <span class="chip active">TechCrunch</span><span class="chip active">MIT Tech Review</span>
+        <span class="chip active">VentureBeat</span><span class="chip active">Wired</span>
+        <span class="chip active">HuggingFace</span><span class="chip active">NVIDIA</span>
+        <span class="chip active">AWS ML</span><span class="chip active">Forbes AI</span>
+        <span class="chip active">IEEE Spectrum</span><span class="chip active">Import AI</span>
+        <span class="chip" style="opacity:0.45;">+ 16 more</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADMIN: SUBSCRIBERS PAGE ────────────────────────────────────────────── -->
+<div id="page-subscribers" class="page">
+  <div class="sub-page">
+    <div class="section-title" style="margin-bottom:1.5rem;">Subscribers</div>
+    <div class="sub-stats">
+      <div class="sub-stat"><div class="sub-stat-num" id="total-subs">—</div><div class="sub-stat-label">Total</div></div>
+      <div class="sub-stat"><div class="sub-stat-num" id="avg-open">—</div><div class="sub-stat-label">Avg open rate</div></div>
+      <div class="sub-stat"><div class="sub-stat-num" id="active-subs">—</div><div class="sub-stat-label">Active</div></div>
+    </div>
+    <div class="subscriber-list">
+      <div class="sub-list-header">
+        <span>Email</span><span>Joined</span><span>Frequency</span><span>Status</span>
+      </div>
+      <div id="sub-list-body">
+        <div class="skeleton-card"><div class="skeleton sk-body"></div></div>
+      </div>
+    </div>
+    <div style="font-size:0.82rem;font-weight:500;color:rgba(19,28,37,0.5);margin-bottom:0.75rem;">Add subscriber</div>
+    <div class="add-sub-form">
+      <div class="form-row">
+        <input type="email" id="new-email" placeholder="subscriber@email.com"/>
+        <select id="new-freq">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+        </select>
+        <button class="btn-primary" onclick="addSubscriber()">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_BASE = 'http://localhost:8000';
+
+let isAdmin   = false;
+let authToken = localStorage.getItem('novaai_token') || null;
+let prevPage  = 'home';
+let articles  = [];
+
+(function checkAdminRoute() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('admin') === 'unlock') {
+    window.history.replaceState({}, document.title, window.location.pathname);
+    setTimeout(openModal, 150);
+  }
+})();
+
+async function apiFetch(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  try {
+    const res = await fetch(API_BASE + path, { ...options, headers });
+    if (res.status === 401) { logoutAdmin(); return null; }
+    return res.ok ? await res.json() : null;
+  } catch { return null; }
+}
+
+function switchPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab, .admin-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  prevPage = id;
+  window.scrollTo(0, 0);
+  if (id === 'newsletter')   loadEditions();
+  if (id === 'subscribers')  loadSubscribers();
+  if (id === 'agents')       refreshLog();
+}
+
+function goHome() { switchPage('home', document.querySelector('.nav-tab')); }
+
+async function loadFeed(tag = 'all') {
+  const path = tag === 'all' ? '/api/articles/today' : `/api/articles/today?tag=${tag}`;
+  const data = await apiFetch(path);
+  const grid = document.getElementById('news-grid');
+  if (!data || !data.articles || data.articles.length === 0) {
+    grid.innerHTML = `<div class="empty-state">No articles found for today yet.<br>The pipeline runs every 30 minutes.</div>`;
+    return;
+  }
+  articles = data.articles;
+  document.getElementById('stat-today').textContent = data.count;
+  renderGrid(articles);
+}
+
+function renderGrid(arts) {
+  const grid = document.getElementById('news-grid');
+  grid.innerHTML = arts.map((a, i) => {
+    const featured = i === 0 || a.is_featured;
+    const visual = featured
+      ? `<div class="card-visual"><svg width="60" height="60" viewBox="0 0 60 60" fill="none"><circle cx="30" cy="30" r="18" stroke="#2075A7" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.4"/><circle cx="30" cy="30" r="9" fill="rgba(32,117,167,0.1)" stroke="#2075A7" stroke-width="1.5"/><circle cx="30" cy="30" r="3.5" fill="#2075A7"/></svg></div>`
+      : '';
+    return `
+      <div class="news-card ${featured ? 'featured' : ''}" data-tag="${a.tag}" onclick="openArticle(${i})">
+        <div>
+          <div class="card-tag ${a.cls}">${a.tag.charAt(0).toUpperCase() + a.tag.slice(1)}</div>
+          <div class="card-headline">${a.headline}</div>
+          <div class="card-summary">${a.summary}</div>
+          <div class="card-meta">
+            <span class="source">${a.source}</span><span>·</span>
+            <span>${a.time}</span><span>·</span><span>${a.read}</span>
+          </div>
+          <div class="read-hint">Read full article →</div>
+        </div>
+        ${visual}
+      </div>`;
+  }).join('');
+}
+
+function filterNews(tag, btn) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid(tag === 'all' ? articles : articles.filter(a => a.tag === tag));
+}
+
+async function openArticle(idx) {
+  let a = articles[idx];
+  if (!a.body) {
+    const full = await apiFetch(`/api/articles/${a.id}`);
+    if (full) { articles[idx] = full; a = full; }
+  }
+  const tagEl = document.getElementById('art-tag');
+  tagEl.textContent = a.tag;
+  tagEl.className = 'article-tag-line ' + a.cls;
+  document.getElementById('art-headline').textContent = a.headline;
+  document.getElementById('art-meta').innerHTML =
+    `<span class="src">${a.source}</span><span>·</span><span>${a.time}</span><span>·</span><span>${a.read}</span>`;
+  document.getElementById('art-body').innerHTML = a.body || `<p>${a.summary}</p>`;
+  const link = document.getElementById('art-src-link');
+  link.href = a.source_url || '#';
+  link.textContent = `Read original on ${a.source} ↗`;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab, .admin-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-article').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function closeArticle() {
+  const dest = (prevPage === 'article' || prevPage === 'home') ? 'home' : prevPage;
+  switchPage(dest, null);
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    if (t.textContent === 'Feed') t.classList.add('active');
+  });
+}
+
+async function loadEditions() {
+  const data = await apiFetch('/api/newsletter/editions');
+  const list = document.getElementById('editions-list');
+  if (!data || !data.editions || data.editions.length === 0) {
+    list.innerHTML = `<div style="color:rgba(19,28,37,0.35);font-size:0.85rem;padding:1rem 0;">No editions sent yet.</div>`;
+    return;
+  }
+  list.innerHTML = data.editions.map(e => `
+    <div class="edition-card">
+      <div class="edition-num">#${e.edition_number}</div>
+      <div class="edition-info">
+        <div class="edition-title">${e.subject}</div>
+        <div class="edition-meta">
+          ${e.created_at ? new Date(e.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : ''}
+          · ${e.recipients} recipients
+        </div>
+      </div>
+      <div>
+        <div class="edition-rate">${e.open_rate}%</div>
+        <div style="font-size:0.65rem;color:rgba(19,28,37,0.28);">open rate</div>
+      </div>
+    </div>`).join('');
+  const avg = Math.round(data.editions.reduce((s, e) => s + e.open_rate, 0) / data.editions.length);
+  document.getElementById('stat-openrate').textContent = avg + '%';
+  document.getElementById('avg-open').textContent = avg + '%';
+}
+
+async function heroSubscribe() {
+  const email = document.getElementById('hero-email').value;
+  if (!email || !email.includes('@')) { showToast('Please enter a valid email address.'); return; }
+  const data = await apiFetch('/api/subscribers/subscribe', {
+    method: 'POST',
+    body: JSON.stringify({ email, frequency: 'daily' }),
+  });
+  if (data) {
+    document.getElementById('hero-email').value = '';
+    showToast('Subscribed! First edition arrives tomorrow at 08:00 UTC.');
+  } else {
+    showToast('Something went wrong. Please try again.');
+  }
+}
+
+function openModal() {
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('lu').value = '';
+  document.getElementById('lp').value = '';
+  document.getElementById('lerr').textContent = '';
+  setTimeout(() => document.getElementById('lu').focus(), 80);
+}
+
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+function overlayClick(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
+
+async function doLogin() {
+  const u = document.getElementById('lu').value.trim();
+  const p = document.getElementById('lp').value;
+  const data = await apiFetch('/api/admin/login', {
+    method: 'POST',
+    body: JSON.stringify({ username: u, password: p }),
+  });
+  if (data && data.access_token) {
+    authToken = data.access_token;
+    localStorage.setItem('novaai_token', authToken);
+    isAdmin = true;
+    closeModal();
+    activateAdminUI();
+    showToast('Welcome back, Admin.');
+  } else {
+    document.getElementById('lerr').textContent = 'Incorrect username or password.';
+    document.getElementById('lp').value = '';
+    document.getElementById('lp').focus();
+  }
+}
+
+function activateAdminUI() {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.add('visible'));
+  document.getElementById('admin-badge').classList.add('visible');
+  document.getElementById('signout-btn').classList.add('visible');
+}
+
+function logoutAdmin() {
+  isAdmin = false;
+  authToken = null;
+  localStorage.removeItem('novaai_token');
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('visible', 'active'));
+  document.getElementById('admin-badge').classList.remove('visible');
+  document.getElementById('signout-btn').classList.remove('visible');
+  const active = document.querySelector('.page.active');
+  if (active && ['page-agents','page-subscribers'].includes(active.id)) goHome();
+  showToast('Signed out of admin.');
+}
+
+async function loadSubscribers() {
+  if (!isAdmin) return;
+  const data = await apiFetch('/api/subscribers/');
+  if (!data) return;
+  document.getElementById('total-subs').textContent = data.count.toLocaleString();
+  document.getElementById('active-subs').textContent =
+    data.subscribers.filter(s => s.status === 'active').length;
+  document.getElementById('sub-list-body').innerHTML = data.subscribers.map(s => `
+    <div class="sub-row">
+      <span class="sub-email">${s.email}</span>
+      <span class="sub-date">${s.joined}</span>
+      <span class="sub-freq" style="text-transform:capitalize;">${s.frequency}</span>
+      <span class="sub-badge ${s.status === 'active' ? 'badge-active' : 'badge-paused'}">${s.status}</span>
+    </div>`).join('');
+}
+
+async function addSubscriber() {
+  const email = document.getElementById('new-email').value;
+  const freq  = document.getElementById('new-freq').value;
+  if (!email || !email.includes('@')) { showToast('Enter a valid email.'); return; }
+  const data = await apiFetch('/api/subscribers/', {
+    method: 'POST',
+    body: JSON.stringify({ email, frequency: freq }),
+  });
+  if (data) {
+    document.getElementById('new-email').value = '';
+    showToast('Subscriber added!');
+    loadSubscribers();
+  } else {
+    showToast('Could not add subscriber.');
+  }
+}
+
+async function triggerPipeline() {
+  const data = await apiFetch('/api/admin/pipeline/run', { method: 'POST' });
+  if (data) {
+    showToast('Pipeline triggered — check the log below.');
+    setTimeout(refreshLog, 2000);
+  } else {
+    showToast('Could not trigger pipeline.');
+  }
+}
+
+async function refreshLog() {
+  const data = await apiFetch('/api/admin/status');
+  if (!data) return;
+  document.getElementById('pipeline-sub-text').textContent =
+    data.running ? 'Pipeline is currently running...' : 'Pipeline idle — last run shown below.';
+  const log = document.getElementById('log-box');
+  if (data.log && data.log.length > 0) {
+    log.innerHTML = data.log.map(entry => {
+      const cls  = { ok:'log-ok', info:'log-info', warn:'log-warn', error:'log-error' }[entry.level] || 'log-info';
+      const icon = { ok:'✓', warn:'⚠', error:'✗', info:'→' }[entry.level] || '→';
+      return `<div class="${cls}">[${entry.time}] ${icon} ${entry.message}</div>`;
+    }).join('');
+    log.scrollTop = log.scrollHeight;
+  } else {
+    log.innerHTML = '<div style="color:rgba(232,241,247,0.28);font-size:0.7rem;">No log entries yet. Run the pipeline to see activity.</div>';
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+(async function init() {
+  if (authToken) {
+    const check = await apiFetch('/api/admin/status');
+    if (check) {
+      isAdmin = true;
+      activateAdminUI();
+    } else {
+      authToken = null;
+      localStorage.removeItem('novaai_token');
+    }
+  }
+  await loadFeed();
+})();
+</script>
+</body>
+</html>

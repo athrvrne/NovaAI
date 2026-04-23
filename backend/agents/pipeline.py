@@ -15,6 +15,7 @@ from agents.filter     import run_filter
 from agents.summarizer import run_summarizer
 from agents.editor     import run_editor
 from agents.sender     import run_sender
+from agents.rag        import index_all_articles as rag_index
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +73,11 @@ async def run_pipeline():
         log_step("info", f"Summarizer Agent: generating summaries for {len(selected_ids)} articles...")
         summarised = await run_summarizer(selected_ids)
         log_step("ok", f"Summarizer done: {summarised}/{len(selected_ids)} summarised")
+
+        # ── Step 3b: RAG Index ─────────────────────────────────────────────────
+        log_step("info", "RAG Agent: indexing summarised articles...")
+        indexed = await rag_index()
+        log_step("ok", f"RAG Agent done: {indexed} new articles indexed")
 
         # ── Step 4: Edit ───────────────────────────────────────────────────────
         log_step("info", "Editor Agent: composing newsletter edition...")

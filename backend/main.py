@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import logging
 
-from api.routes import articles, subscribers, admin, newsletter
+from api.routes import articles, subscribers, admin, newsletter, search
 from models.database import init_db
 from agents.pipeline import run_pipeline
 
@@ -69,6 +69,7 @@ app.include_router(articles.router,     prefix="/api/articles",     tags=["Artic
 app.include_router(subscribers.router,  prefix="/api/subscribers",  tags=["Subscribers"])
 app.include_router(admin.router,        prefix="/api/admin",        tags=["Admin"])
 app.include_router(newsletter.router,   prefix="/api/newsletter",   tags=["Newsletter"])
+app.include_router(search.router,       prefix="/api/search",       tags=["Search / RAG"])
 
 
 @app.get("/")

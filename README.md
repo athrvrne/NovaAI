@@ -1,6 +1,6 @@
 # NovaAI
 
-An agent-powered AI intelligence platform. A Python/FastAPI backend runs a 5-stage pipeline that crawls 32+ sources every 30 minutes, filters, summarizes with Claude, assembles editions, and delivers daily AI news to subscribers. A single-file HTML frontend displays the live feed and admin dashboard.
+An agent-powered AI intelligence platform with RAG-based Q&A. A Python/FastAPI backend runs a 6-stage pipeline that crawls 32+ sources every 30 minutes, filters, summarizes with Claude, indexes into a vector store, assembles editions, and delivers daily AI news to subscribers. A single-file HTML frontend displays the live feed, admin dashboard, and an Ask AI interface for grounded Q&A over the article corpus.
 
 ```
 novaai/
@@ -15,6 +15,7 @@ novaai/
     │   ├── crawler.py          ← Fetches 32+ RSS feeds and news sources every 30 min
     │   ├── filter.py           ← Scores and selects best articles
     │   ├── summarizer.py       ← Claude API — generates summaries + bodies
+    │   ├── rag.py              ← RAG agent — ChromaDB indexing + Claude Q&A
     │   ├── editor.py           ← Composes newsletter editions
     │   ├── sender.py           ← SendGrid email delivery
     │   └── pipeline.py         ← Orchestrates all agents in sequence
@@ -25,7 +26,8 @@ novaai/
             ├── articles.py     ← GET /api/articles/*
             ├── subscribers.py  ← POST /api/subscribers/subscribe
             ├── admin.py        ← POST /api/admin/login + JWT auth
-            └── newsletter.py   ← GET /api/newsletter/editions/*
+            ├── newsletter.py   ← GET /api/newsletter/editions/*
+            └── search.py       ← POST /api/search/ask (RAG Q&A)
 ```
 
 ---
@@ -37,7 +39,9 @@ novaai/
 | **API framework** | FastAPI (Python) |
 | **Database ORM** | SQLAlchemy 2.0 (async) |
 | **Database** | SQLite (dev) · PostgreSQL via asyncpg (prod) |
-| **AI** | Anthropic Claude API — summaries, article bodies, edition intros |
+| **AI** | Anthropic Claude API — summaries, article bodies, edition intros, RAG answers |
+| **Vector store** | ChromaDB (persistent, local) — HNSW index with cosine similarity |
+| **Embeddings** | ChromaDB default (`all-MiniLM-L6-v2` via ONNX — no extra API key required) |
 | **Email delivery** | SendGrid |
 | **Scheduling** | APScheduler — 30-min crawl interval, weekday 08:00 UTC send |
 | **HTTP / async** | aiohttp — concurrent RSS fetching · asyncio throughout |
@@ -99,7 +103,7 @@ python -m http.server 5500
 
 ## Pipeline agents
 
-The crawler runs every **30 minutes**. The full pipeline (summarize + compose + send) runs on the same interval but only dispatches emails on weekdays at 08:00 UTC. You can also trigger it manually:
+The crawler runs every **30 minutes**. The full pipeline runs on the same interval but only dispatches emails on weekdays at 08:00 UTC. You can also trigger it manually:
 
 ```bash
 # Via API
@@ -113,7 +117,7 @@ python -c "import asyncio; from agents.pipeline import run_pipeline; asyncio.run
 ### Agent sequence
 
 ```
-Crawler → Filter → Summarizer → Editor → Sender
+Crawler → Filter → Summarizer → RAG Index → Editor → Sender
 ```
 
 | Agent | What it does |
@@ -121,6 +125,7 @@ Crawler → Filter → Summarizer → Editor → Sender
 | **Crawler** | Fetches up to 100 articles from 32+ sources every 30 minutes; deduplicates by URL |
 | **Filter** | Scores articles by relevance, recency, and tag — selects the best candidates |
 | **Summarizer** | Calls Claude API to generate 2-sentence summaries + full article bodies |
+| **RAG Index** | Embeds and upserts summarised articles into ChromaDB for semantic search |
 | **Editor** | Creates the Edition record, picks featured article, writes intro via Claude |
 | **Sender** | Renders HTML email and dispatches via SendGrid to active subscribers |
 
@@ -140,6 +145,40 @@ To add more sources, append to the `SOURCES` list in `backend/agents/crawler.py`
 
 ```python
 {"name": "My Source", "url": "https://example.com/feed.xml", "tag_hint": ArticleTag.research},
+```
+
+---
+
+## RAG — Ask AI
+
+The **Ask AI** tab in the frontend lets users query the article knowledge base with natural language.
+
+### How it works
+
+1. User submits a question via `POST /api/search/ask`
+2. The question is embedded using `all-MiniLM-L6-v2` (runs locally via ONNX — no extra API key)
+3. ChromaDB returns the top-5 most semantically similar articles (cosine similarity)
+4. Retrieved articles are injected as context into a Claude prompt
+5. Claude generates a concise, source-cited answer
+
+### API
+
+```bash
+# Ask a question
+curl -X POST http://localhost:8000/api/search/ask \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What new open-source models were released this week?", "k": 5}'
+
+# Manually trigger re-indexing
+curl -X POST http://localhost:8000/api/search/index
+```
+
+### Vector store
+
+Articles are stored in `backend/chroma_db/` (auto-created on first run). They are indexed automatically at the end of each pipeline run. To re-index all existing articles manually:
+
+```bash
+curl -X POST http://localhost:8000/api/search/index
 ```
 
 ---
@@ -229,3 +268,5 @@ Key values you can tune in `.env`:
 Default credentials: `admin` / `novaai2026` — **change these in `.env` before deploying**.
 
 The admin panel is not linked anywhere in the public UI. Navigate to `/?admin=unlock` to open the login modal. On successful login, a JWT is stored in `localStorage` and the Agents and Subscribers tabs become visible.
+
+---

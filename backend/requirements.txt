@@ -33,3 +33,6 @@ pyjwt==2.9.0
 
 # Scheduler
 apscheduler==3.10.4
+
+# RAG / Vector store
+chromadb>=0.5.0

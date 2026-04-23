@@ -181,6 +181,36 @@ body { font-family: 'DM Sans', sans-serif; background: #E8F1F7; color: #131C25; 
 .form-row input { flex: 1; }
 .form-row select option { background: #ffffff; }
 
+/* ── ASK AI PAGE ─────────────────────────────────────────────────────────── */
+.ask-wrap { max-width: 760px; margin: 0 auto; padding: 3rem 2rem 4rem; }
+.ask-hero { text-align: center; margin-bottom: 2.5rem; }
+.ask-title { font-family: 'Playfair Display',serif; font-size: clamp(1.6rem,4vw,2.2rem); font-weight: 700; color: #131C25; line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 0.6rem; }
+.ask-sub { color: rgba(19,28,37,0.5); font-size: 0.92rem; line-height: 1.7; }
+.ask-input-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+.ask-input { flex: 1; background: #ffffff; border: 1.5px solid rgba(32,117,167,0.22); border-radius: 12px; padding: 0.8rem 1.1rem; color: #131C25; font-size: 0.95rem; font-family: 'DM Sans',sans-serif; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+.ask-input:focus { border-color: #2075A7; box-shadow: 0 0 0 3px rgba(32,117,167,0.09); }
+.ask-suggestions { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 2.5rem; }
+.ask-result { margin-top: 2rem; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:none;} }
+.ask-answer-box { background: #ffffff; border: 1px solid rgba(32,117,167,0.16); border-radius: 14px; padding: 1.5rem; margin-bottom: 1.5rem; }
+.ask-answer-label { font-size: 0.63rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #2075A7; margin-bottom: 0.75rem; }
+.ask-answer-text { font-size: 0.94rem; color: rgba(19,28,37,0.78); line-height: 1.8; white-space: pre-wrap; }
+.ask-sources-label { font-size: 0.65rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.09em; color: rgba(19,28,37,0.32); margin-bottom: 0.65rem; }
+.ask-sources { display: flex; flex-direction: column; gap: 8px; }
+.ask-source-card { background: #ffffff; border: 1px solid rgba(32,117,167,0.1); border-radius: 10px; padding: 0.85rem 1.1rem; display: flex; gap: 1rem; align-items: flex-start; transition: background 0.12s; }
+.ask-source-card:hover { background: #E8F1F7; }
+.ask-source-rank { font-family: 'Playfair Display',serif; font-size: 1.1rem; color: rgba(19,28,37,0.15); min-width: 24px; line-height: 1; padding-top: 1px; }
+.ask-source-info { flex: 1; }
+.ask-source-title { font-size: 0.86rem; font-weight: 500; color: #131C25; margin-bottom: 3px; line-height: 1.35; }
+.ask-source-meta { font-size: 0.7rem; color: rgba(19,28,37,0.38); }
+.ask-source-meta a { color: #2075A7; text-decoration: none; }
+.ask-source-snippet { font-size: 0.78rem; color: rgba(19,28,37,0.45); margin-top: 0.4rem; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ask-score { font-size: 0.65rem; font-weight: 600; color: rgba(32,117,167,0.55); white-space: nowrap; padding-top: 2px; }
+.ask-loading { padding: 2.5rem 0; }
+.ask-loading-bar { height: 13px; border-radius: 6px; margin-bottom: 10px; }
+.ask-empty { text-align: center; padding: 4rem 2rem; color: rgba(19,28,37,0.32); font-size: 0.88rem; line-height: 1.9; }
+.ask-empty-icon { font-size: 2.2rem; margin-bottom: 1.2rem; opacity: 0.22; letter-spacing: -2px; }
+
 /* ── LOGIN MODAL ──────────────────────────────────────────────────────────── */
 .overlay { position: fixed; inset: 0; background: rgba(19,28,37,0.45); z-index: 500; display: none; align-items: center; justify-content: center; }
 .overlay.open { display: flex; }
@@ -210,6 +240,7 @@ body { font-family: 'DM Sans', sans-serif; background: #E8F1F7; color: #131C25; 
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="switchPage('home',this)">Feed</button>
     <button class="nav-tab" onclick="switchPage('newsletter',this)">Editions</button>
+    <button class="nav-tab" onclick="switchPage('ask',this)">Ask AI</button>
     <button class="admin-tab" id="tab-agents"      onclick="switchPage('agents',this)">Agents</button>
     <button class="admin-tab" id="tab-subscribers" onclick="switchPage('subscribers',this)">Subscribers</button>
   </div>
@@ -432,6 +463,48 @@ body { font-family: 'DM Sans', sans-serif; background: #E8F1F7; color: #131C25; 
         </select>
         <button class="btn-primary" onclick="addSubscriber()">Add</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ASK AI PAGE ──────────────────────────────────────────────────────── -->
+<div id="page-ask" class="page">
+  <div class="ask-wrap">
+    <div class="ask-hero">
+      <p class="hero-eyebrow">Powered by RAG + Claude</p>
+      <h2 class="ask-title">Ask about AI news</h2>
+      <p class="ask-sub">Query our indexed knowledge base of AI articles — get grounded answers with cited sources.</p>
+    </div>
+    <div class="ask-input-row">
+      <input type="text" id="ask-input" class="ask-input" placeholder="What are the latest LLM efficiency breakthroughs?" onkeydown="if(event.key==='Enter')submitAsk()"/>
+      <button class="btn-primary" onclick="submitAsk()">Ask</button>
+    </div>
+    <div class="ask-suggestions">
+      <button class="chip" onclick="askQuestion('What new AI models were released recently?')">New model releases</button>
+      <button class="chip" onclick="askQuestion('What is the latest AI safety research?')">AI safety research</button>
+      <button class="chip" onclick="askQuestion('Which AI companies received funding recently?')">Industry funding</button>
+      <button class="chip" onclick="askQuestion('What AI regulations or policy changes are happening?')">AI policy</button>
+    </div>
+
+    <div id="ask-loading" class="ask-loading" style="display:none;">
+      <div class="skeleton ask-loading-bar" style="width:60%;"></div>
+      <div class="skeleton ask-loading-bar" style="width:80%;"></div>
+      <div class="skeleton ask-loading-bar" style="width:50%;"></div>
+    </div>
+
+    <div id="ask-result" class="ask-result" style="display:none;">
+      <div class="ask-answer-box">
+        <div class="ask-answer-label">Answer</div>
+        <div class="ask-answer-text" id="ask-answer-text"></div>
+      </div>
+      <div class="ask-sources-label">Retrieved sources</div>
+      <div class="ask-sources" id="ask-sources"></div>
+    </div>
+
+    <div id="ask-empty" class="ask-empty">
+      <div class="ask-empty-icon">◎ ◉ ○</div>
+      <p>Ask anything about the AI news in our knowledge base.<br>
+      The RAG pipeline retrieves the most relevant articles<br>and uses Claude to generate a grounded answer.</p>
     </div>
   </div>
 </div>
@@ -702,6 +775,51 @@ async function refreshLog() {
   } else {
     log.innerHTML = '<div style="color:rgba(232,241,247,0.28);font-size:0.7rem;">No log entries yet. Run the pipeline to see activity.</div>';
   }
+}
+
+async function submitAsk() {
+  const q = document.getElementById('ask-input').value.trim();
+  if (q) askQuestion(q);
+}
+
+async function askQuestion(q) {
+  document.getElementById('ask-input').value = q;
+  document.getElementById('ask-result').style.display = 'none';
+  document.getElementById('ask-empty').style.display = 'none';
+  document.getElementById('ask-loading').style.display = 'block';
+
+  const data = await apiFetch('/api/search/ask', {
+    method:  'POST',
+    body:    JSON.stringify({ question: q, k: 5 }),
+  });
+
+  document.getElementById('ask-loading').style.display = 'none';
+
+  if (!data) {
+    document.getElementById('ask-empty').style.display = 'block';
+    document.getElementById('ask-empty').querySelector('p').textContent =
+      'Could not reach the API. Make sure the backend is running.';
+    return;
+  }
+
+  document.getElementById('ask-answer-text').textContent = data.answer;
+
+  const sourcesEl = document.getElementById('ask-sources');
+  sourcesEl.innerHTML = (data.sources || []).map((s, i) => `
+    <div class="ask-source-card">
+      <div class="ask-source-rank">${i + 1}</div>
+      <div class="ask-source-info">
+        <div class="ask-source-title">${s.title}</div>
+        <div class="ask-source-meta">
+          <span class="tag-${s.tag}">${s.tag}</span> · ${s.source}
+          ${s.source_url ? `· <a href="${s.source_url}" target="_blank" rel="noopener">↗ source</a>` : ''}
+        </div>
+        <div class="ask-source-snippet">${s.snippet}</div>
+      </div>
+      <div class="ask-score">${Math.round(s.score * 100)}%</div>
+    </div>`).join('');
+
+  document.getElementById('ask-result').style.display = 'block';
 }
 
 function showToast(msg) {
